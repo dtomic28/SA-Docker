@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Camera Feed</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+      h1 {
+        color: #333;
+      }
+      .image-container {
+        margin: 20px auto;
+        max-width: 800px;
+        background-color: white;
+        border-radius: 8px;
+        padding: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+      }
+      .refresh-btn {
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+      }
+      .refresh-btn:hover {
+        background-color: #45a049;
+      }
+      .status {
+        margin-top: 20px;
+        font-style: italic;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Live Camera Feed</h1>
+    <div class="image-container">
+      {% if image %}
+      <img src="data:image/jpeg;base64,{{ image }}" alt="Camera Feed" />
+      {% else %}
+      <p>No image available. Waiting for server...</p>
+      {% endif %}
+    </div>
+    <button class="refresh-btn" onclick="location.reload()">Refresh</button>
+    <p class="status">Images are updated every 10 seconds on the server</p>
+
+    <script>
+      // Auto-refresh the page every 15 seconds
+      setTimeout(function () {
+        location.reload();
+      }, 15000);
+    </script>
+  </body>
+</html>
