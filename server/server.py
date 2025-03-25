@@ -1,4 +1,5 @@
 from flask import Flask, Response, jsonify
+
 import cv2
 import time
 import threading
