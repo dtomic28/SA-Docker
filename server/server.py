@@ -1,9 +1,8 @@
-from flask import Flask, Response, jsonify
+from flask import Flask, jsonify
 import numpy as np
 import cv2
 import time
 import threading
-import os
 import base64
 
 app = Flask(__name__)
