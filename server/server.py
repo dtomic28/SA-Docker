@@ -1,5 +1,5 @@
 from flask import Flask, Response, jsonify
-
+import numpy as np
 import cv2
 import time
 import threading
@@ -13,46 +13,80 @@ latest_image = None
 image_lock = threading.Lock()
 
 
+def generate_dummy_image():
+    """
+    Generate a dummy image with timestamp when camera is not available
+    """
+    # Create a base image
+    img = np.zeros((480, 640, 3), dtype=np.uint8)
+    img[:] = (50, 30, 20)  # BGR format
+
+    # Add a simple pattern
+    cv2.rectangle(img, (100, 100), (540, 380), (0, 0, 255), -1)  # Red rectangle
+    cv2.circle(img, (320, 240), 80, (0, 255, 0), -1)  # Green circle
+
+    # Add text indicating this is a dummy image
+    cv2.putText(
+        img,
+        "Camera Not Available",
+        (180, 70),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (255, 255, 255),
+        2,
+    )
+
+    # Add current timestamp
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    cv2.putText(
+        img, timestamp, (180, 420), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2
+    )
+
+    return img
+
+
 def capture_images():
     """
-    Capture images every 10 seconds from the camera
+    Capture images from camera or generate dummy images every 10 seconds
     """
     global latest_image
 
-    # Initialize camera
-    camera = cv2.VideoCapture(0)
+    # Try to initialize camera
+    camera = None
+    try:
+        camera = cv2.VideoCapture(0)
+        if camera.isOpened():
+            camera = None
+            print("Camera initialized successfully")
+        else:
+            print("Camera could not be opened, using dummy images")
+            camera = None
+    except Exception as e:
+        print(f"Error initializing camera: {e}")
+        camera = None
 
-    if not camera.isOpened():
-        print("Error: Could not open camera.")
-        # If no camera available, use a solid color image for testing
-        dummy_image = cv2.imread("dummy.jpg") if os.path.exists("dummy.jpg") else None
-        if dummy_image is None:
-            # Create a black image if no dummy image available
-            dummy_image = cv2.rectangle(
-                cv2.cvtColor(
-                    cv2.imread("dummy.jpg")
-                    if os.path.exists("dummy.jpg")
-                    else cv2.cvtColor(
-                        255 * cv2.imread(os.path.join("static", "dummy.jpg"))
-                        if os.path.exists(os.path.join("static", "dummy.jpg"))
-                        else cv2.Mat(480, 640, cv2.CV_8UC3, (0, 0, 0)),
-                        cv2.COLOR_BGR2RGB,
-                    ),
-                    cv2.COLOR_RGB2BGR,
-                ),
-                (100, 100),
-                (540, 380),
-                (0, 0, 255),
-                -1,
+    # Generate initial image
+    if camera is not None and camera.isOpened():
+        ret, frame = camera.read()
+        if ret:
+            # Add timestamp to the image
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            cv2.putText(
+                frame, timestamp, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2
             )
-
-        # Add timestamp to the dummy image
+            with image_lock:
+                latest_image = frame
+        else:
+            with image_lock:
+                latest_image = generate_dummy_image()
+    else:
         with image_lock:
-            latest_image = dummy_image
+            latest_image = generate_dummy_image()
 
     while True:
         try:
-            if camera.isOpened():
+            if camera is not None and camera.isOpened():
+                # Try to get frame from camera
                 ret, frame = camera.read()
                 if ret:
                     # Add timestamp to the image
@@ -66,32 +100,24 @@ def capture_images():
                         (0, 255, 0),
                         2,
                     )
-
-                    # Update the latest image
                     with image_lock:
                         latest_image = frame
                 else:
-                    print("Failed to capture image")
+                    # Fall back to dummy image if frame capture fails
+                    with image_lock:
+                        latest_image = generate_dummy_image()
             else:
-                # If camera is not available, update timestamp on dummy image
+                # Use dummy image if no camera
                 with image_lock:
-                    if latest_image is not None:
-                        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-                        latest_image = latest_image.copy()
-                        cv2.putText(
-                            latest_image,
-                            timestamp,
-                            (10, 30),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            1,
-                            (0, 255, 0),
-                            2,
-                        )
+                    latest_image = generate_dummy_image()
 
             # Sleep for 10 seconds
             time.sleep(10)
         except Exception as e:
             print(f"Error in capture_images: {e}")
+            # If any error occurs, use dummy image
+            with image_lock:
+                latest_image = generate_dummy_image()
             time.sleep(10)
 
 

@@ -23,4 +23,4 @@ RUN echo -e "P6\n640 480\n255\n$(dd if=/dev/zero bs=1 count=$((640*480*3)) | tr 
 EXPOSE 5000
 
 # Command to run the application
-CMD ["python", "app.py"]
+CMD ["python", "server.py"]

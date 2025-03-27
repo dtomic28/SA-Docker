@@ -23,12 +23,22 @@ docker build -t camera-client -f client/.Dockerfile client
 
 echo "Starting server container..."
 # Run the server container
-docker run -d --name camera-server \
-    --restart unless-stopped \
-    --network $NETWORK_NAME \
-    --device /dev/video0:/dev/video0 \
-    camera-server
-
+if [ -e /dev/video0 ]; then
+    echo "Camera device found, starting server with camera access..."
+    # Run the server container with camera access
+    docker run -d --name camera-server \
+        --restart unless-stopped \
+        --network $NETWORK_NAME \
+        --device /dev/video0:/dev/video0 \
+        camera-server
+else
+    echo "No camera device found, starting server without camera access..."
+    # Run the server container without camera access
+    docker run -d --name camera-server \
+        --restart unless-stopped \
+        --network $NETWORK_NAME \
+        camera-server
+fi
 echo "Starting client container..."
 # Run the client container
 docker run -d --name camera-client \
