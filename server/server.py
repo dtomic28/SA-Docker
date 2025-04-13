@@ -129,7 +129,7 @@ def get_image():
 
     with image_lock:
         if latest_image is None:
-            return jsonify({"error": "No image available"}), 404
+            latest_image = generate_dummy_image()
 
         # Convert the image to JPEG
         _, buffer = cv2.imencode(".jpg", latest_image)

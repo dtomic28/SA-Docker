@@ -1,0 +1,29 @@
+name: CI Deploy Workflow
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    needs: run_tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push server image
+        run: |
+          docker build -f server/.dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/sa-server:latest ./server
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/sa-server:latest
+
+      - name: Build and push client image
+        run: |
+          docker build -f client/.dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/sa-client:latest ./client
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/sa-client:latest
