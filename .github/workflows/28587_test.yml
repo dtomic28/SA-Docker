@@ -24,7 +24,7 @@ jobs:
 
       - name: Upload napaka.txt
         if: steps.check.outputs.exists == 'false'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: napaka
           path: napaka.txt
