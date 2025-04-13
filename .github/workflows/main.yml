@@ -1,0 +1,15 @@
+name: Main CI/CD Entry Point
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  dispatch:
+    runs-on: self-hosted
+    steps:
+      - name: Trigger 28587_test workflow
+        run: echo "🧪 Triggering test logic – handled by 28587_test.yml"
+
+      - name: Trigger 28587_deploy workflow
+        run: echo "🚀 Deployment handled after successful test – see 28587_deploy.yml"
