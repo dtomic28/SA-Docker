@@ -18,7 +18,7 @@ def test_dummy_image_generation():
 def test_list_routes():
     routes = [rule.rule for rule in server.app.url_map.iter_rules()]
     print("Available routes:", routes)
-    assert "/image" in routes
+    assert "/image123" in routes
 
 
 def test_image_endpoint_returns_base64():
