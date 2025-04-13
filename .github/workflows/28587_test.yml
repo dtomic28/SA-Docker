@@ -21,6 +21,7 @@ jobs:
           else
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "Test scripts missing." > napaka.txt
+          fi
 
       - name: Upload napaka.txt
         if: steps.check.outputs.exists == 'false'
